@@ -311,7 +311,7 @@ export default function ReefApp() {
     setDiagnosis(getDiagnosis(params, tankGallons, coralType)); setExpandedIssue(null);
     const dateToUse = testDate ? new Date(testDate).toISOString() : new Date().toISOString();
     if (editingEntryId) {
-      const nh = history.map(h => h.id === editingEntryId ? { ...h, date: dateToUse, params: { ...params }, tankGallons, coralType } : h);
+      const nh = history.map(h => h.id === editingEntryId ? { ...h, date: dateToUse, params: { ...params }, tankGallons, coralType } : h).sort((a, b) => new Date(b.date) - new Date(a.date));
       setHistory(nh); saveData(nh);
       setEditingEntryId(null);
     } else {
