@@ -461,11 +461,74 @@ export default function ReefApp() {
     );
   };
 
+  const csvTemplateHeaders = ["date","calcium","alkalinity","magnesium","salinity","ph","temperature","nitrate","phosphate","ammonia","nitrite"];
+  const downloadCsvTemplate = () => {
+    const exampleRow = ["2026-01-15 10:30","420","8.5","1350","1.025","8.2","78","3","0.03","0","0"];
+    const csv = [csvTemplateHeaders.join(","), exampleRow.join(",")].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "reefpulse-template.csv"; a.click();
+    URL.revokeObjectURL(url);
+  };
+  const handleCsvUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target.result;
+      const lines = text.trim().split("\n").map(l => l.trim()).filter(l => l);
+      if (lines.length < 2) { alert("CSV must have a header row and at least one data row."); return; }
+      const headers = lines[0].split(",").map(h => h.trim().toLowerCase());
+      const paramKeys = Object.keys(IDEAL_RANGES);
+      const dataRows = lines.slice(1);
+      const newEntries = [];
+      for (const line of dataRows) {
+        const cols = line.split(",").map(c => c.trim());
+        const row = {};
+        headers.forEach((h, i) => { row[h] = cols[i] || ""; });
+        const entryParams = {};
+        paramKeys.forEach(k => { entryParams[k] = row[k] !== undefined && row[k] !== "" ? row[k] : ""; });
+        const dateVal = row["date"] || row["test_date"] || row["timestamp"] || "";
+        const parsedDate = dateVal ? new Date(dateVal) : new Date();
+        const isoDate = isNaN(parsedDate.getTime()) ? new Date().toISOString() : parsedDate.toISOString();
+        newEntries.push({ id: Date.now() + Math.random(), date: isoDate, params: entryParams, tankGallons, coralType });
+      }
+      if (newEntries.length === 0) { alert("No valid data rows found."); return; }
+      if (newEntries.length === 1) {
+        const entry = newEntries[0];
+        setParams(entry.params);
+        if (entry.date) {
+          const d = new Date(entry.date);
+          const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+          setTestDate(local);
+        }
+        setDiagnosis(null);
+      } else {
+        const nh = [...newEntries, ...history].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 100);
+        setHistory(nh); saveData(nh);
+        setView("history");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
   const renderTest = () => (
     <div>
       <div style={base.card}>
         <div style={base.cardTitle}>Enter Water Parameters</div>
         <div style={{ fontSize: 12, color: "#475569", marginBottom: 16 }}>{tankGallons}gal {CORAL_PRESETS[coralType]?.label} - leave any field blank to skip</div>
+
+        {/* CSV Import/Template */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          <label style={{ ...base.secBtn, flex: 1, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            {"\u{1F4C2}"} Import CSV
+            <input type="file" accept=".csv" onChange={handleCsvUpload} style={{ display: "none" }} />
+          </label>
+          <button style={{ ...base.secBtn, flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }} onClick={downloadCsvTemplate}>
+            {"\u{1F4E5}"} CSV Template
+          </button>
+        </div>
 
         {/* Date input */}
         <div style={{ marginBottom: 14, padding: "12px 14px", background: "rgba(2,6,23,0.3)", borderRadius: 10, border: "1px solid rgba(51,65,85,0.25)" }}>
