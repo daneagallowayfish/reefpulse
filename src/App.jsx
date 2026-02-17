@@ -282,6 +282,7 @@ export default function ReefApp() {
   const [showSetup, setShowSetup] = useState(true);
   const [expandedIssue, setExpandedIssue] = useState(null);
   const [animateIn, setAnimateIn] = useState(false);
+  const [editingEntryId, setEditingEntryId] = useState(null);
   const [historySubView, setHistorySubView] = useState("log");
   const [selectedTrendParam, setSelectedTrendParam] = useState("calcium");
   // Dosing calc state
@@ -309,18 +310,36 @@ export default function ReefApp() {
   const runDiagnosis = () => {
     setDiagnosis(getDiagnosis(params, tankGallons, coralType)); setExpandedIssue(null);
     const dateToUse = testDate ? new Date(testDate).toISOString() : new Date().toISOString();
-    const entry = { id: Date.now(), date: dateToUse, params: { ...params }, tankGallons, coralType };
-    const nh = [entry, ...history].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 100);
-    setHistory(nh); saveData(nh);
+    if (editingEntryId) {
+      const nh = history.map(h => h.id === editingEntryId ? { ...h, date: dateToUse, params: { ...params }, tankGallons, coralType } : h);
+      setHistory(nh); saveData(nh);
+      setEditingEntryId(null);
+    } else {
+      const entry = { id: Date.now(), date: dateToUse, params: { ...params }, tankGallons, coralType };
+      const nh = [entry, ...history].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 100);
+      setHistory(nh); saveData(nh);
+    }
   };
 
   const saveTest = () => {
     setParams({ nitrate: "", ph: "", alkalinity: "", calcium: "", phosphate: "", salinity: "", temperature: "", magnesium: "", ammonia: "", nitrite: "" });
     setTestDate("");
-    setDiagnosis(null); setView("dashboard");
+    setEditingEntryId(null); setDiagnosis(null); setView("dashboard");
   };
 
   const clearHistory = async () => { setHistory([]); try { localStorage.setItem("reef-tank-data", JSON.stringify({ tankGallons, coralType, history: [] })); } catch(e){} };
+  const deleteEntry = (id) => {
+    const nh = history.filter(h => h.id !== id);
+    setHistory(nh); saveData(nh);
+  };
+  const editEntry = (entry) => {
+    setEditingEntryId(entry.id);
+    setParams({ ...entry.params });
+    const d = new Date(entry.date);
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    setTestDate(local);
+    setDiagnosis(null); setView("test");
+  };
   const saveTankProfile = () => { setShowSetup(false); saveData(history, tankGallons, coralType); };
   const getParamHistory = (key) => history.filter(h => h.params[key] && h.params[key] !== "").map(h => ({ date: h.date, value: parseFloat(h.params[key]) })).reverse();
   const getChartData = (key) => history.filter(h => h.params[key] && h.params[key] !== "").map(h => ({ date: new Date(h.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }), fullDate: new Date(h.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }), value: parseFloat(h.params[key]) })).reverse();
@@ -872,6 +891,10 @@ export default function ReefApp() {
                         })}
                       </div>
                       {issues.length > 0 && <div style={{ marginTop: 6, fontSize: 12, color: "#94a3b8" }}>{issues.length} issue{issues.length !== 1 ? "s" : ""} detected</div>}
+                      <div style={{ display: "flex", gap: 6, marginTop: 8, borderTop: "1px solid rgba(51,65,85,0.2)", paddingTop: 8 }}>
+                        <button onClick={() => editEntry(entry)} style={{ background: "none", border: "1px solid rgba(6,182,212,0.3)", borderRadius: 6, padding: "4px 10px", fontSize: 11, color: "#06b6d4", cursor: "pointer", fontFamily: "inherit" }}>{"\u270F\uFE0F"} Edit</button>
+                        <button onClick={() => deleteEntry(entry.id)} style={{ background: "none", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 6, padding: "4px 10px", fontSize: 11, color: "#ef4444", cursor: "pointer", fontFamily: "inherit" }}>{"\u{1F5D1}\uFE0F"} Delete</button>
+                      </div>
                     </div>
                   );
                 })}
