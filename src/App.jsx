@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ReferenceArea, ResponsiveContainer } from "recharts";
 
 const IDEAL_RANGES = {
-  calcium: { min: 380, max: 450, unit: "ppm", label: "Calcium", icon: "\u{1FAB8}" },
-  alkalinity: { min: 7.5, max: 11, unit: "dKH", label: "Alkalinity", icon: "\u2697\uFE0F" },
-  magnesium: { min: 1250, max: 1400, unit: "ppm", label: "Magnesium", icon: "\u{1F9EA}" },
-  salinity: { min: 1.024, max: 1.026, unit: "sg", label: "Salinity", icon: "\u{1F30A}" },
-  ph: { min: 7.8, max: 8.4, unit: "", label: "pH", icon: "\u{1F4CA}" },
-  temperature: { min: 76, max: 80, unit: "\u00B0F", label: "Temperature", icon: "\u{1F321}\uFE0F" },
   nitrate: { min: 0, max: 10, unit: "ppm", label: "Nitrate (NO\u2083)", icon: "\u{1F52C}" },
+  ph: { min: 7.8, max: 8.4, unit: "", label: "pH", icon: "\u{1F4CA}" },
+  alkalinity: { min: 7.5, max: 11, unit: "dKH", label: "Alkalinity", icon: "\u2697\uFE0F" },
+  calcium: { min: 380, max: 450, unit: "ppm", label: "Calcium", icon: "\u{1FAB8}" },
   phosphate: { min: 0, max: 0.1, unit: "ppm", label: "Phosphate (PO\u2084)", icon: "\u{1F4A7}" },
+  salinity: { min: 1.024, max: 1.026, unit: "sg", label: "Salinity", icon: "\u{1F30A}" },
+  temperature: { min: 76, max: 80, unit: "\u00B0F", label: "Temperature", icon: "\u{1F321}\uFE0F" },
+  magnesium: { min: 1250, max: 1400, unit: "ppm", label: "Magnesium", icon: "\u{1F9EA}" },
   ammonia: { min: 0, max: 0, unit: "ppm", label: "Ammonia (NH\u2083)", icon: "\u26A0\uFE0F" },
   nitrite: { min: 0, max: 0, unit: "ppm", label: "Nitrite (NO\u2082)", icon: "\u{1F9EB}" },
 };
@@ -275,7 +275,7 @@ export default function ReefApp() {
   const [view, setView] = useState("dashboard");
   const [tankGallons, setTankGallons] = useState("50");
   const [coralType, setCoralType] = useState("mixed");
-  const [params, setParams] = useState({ calcium: "", alkalinity: "", magnesium: "", salinity: "", ph: "", temperature: "", nitrate: "", phosphate: "", ammonia: "", nitrite: "" });
+  const [params, setParams] = useState({ nitrate: "", ph: "", alkalinity: "", calcium: "", phosphate: "", salinity: "", temperature: "", magnesium: "", ammonia: "", nitrite: "" });
   const [testDate, setTestDate] = useState("");
   const [history, setHistory] = useState([]);
   const [diagnosis, setDiagnosis] = useState(null);
@@ -461,9 +461,9 @@ export default function ReefApp() {
     );
   };
 
-  const csvTemplateHeaders = ["date","calcium","alkalinity","magnesium","salinity","ph","temperature","nitrate","phosphate","ammonia","nitrite"];
+  const csvTemplateHeaders = ["date","nitrate","ph","alkalinity","calcium","phosphate","salinity","temperature","magnesium","ammonia","nitrite"];
   const downloadCsvTemplate = () => {
-    const exampleRow = ["2026-01-15 10:30","420","8.5","1350","1.025","8.2","78","3","0.03","0","0"];
+    const exampleRow = ["2026-01-15 10:30","3","8.2","8.5","420","0.03","1.025","78","1350","0","0"];
     const csv = [csvTemplateHeaders.join(","), exampleRow.join(",")].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
