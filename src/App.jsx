@@ -296,7 +296,7 @@ export default function ReefApp() {
     async function load() {
       try {
         const raw = localStorage.getItem("reef-tank-data"); const r = raw ? { value: raw } : null;
-        if (r && r.value) { const d = JSON.parse(r.value); if (d.tankGallons) setTankGallons(d.tankGallons); if (d.coralType) setCoralType(d.coralType); if (d.history) setHistory(d.history); if (d.tankGallons || d.history?.length) setShowSetup(false); }
+        if (r && r.value) { const d = JSON.parse(r.value); if (d.tankGallons) setTankGallons(d.tankGallons); if (d.coralType) setCoralType(d.coralType); if (d.history) setHistory([...d.history].sort((a, b) => new Date(b.date) - new Date(a.date))); if (d.tankGallons || d.history?.length) setShowSetup(false); }
       } catch (e) {}
     }
     load();
