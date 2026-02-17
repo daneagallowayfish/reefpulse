@@ -306,14 +306,16 @@ export default function ReefApp() {
     try { localStorage.setItem("reef-tank-data", JSON.stringify({ tankGallons: tg || tankGallons, coralType: ct || coralType, history: newHistory || history })); } catch (e) {}
   }, [tankGallons, coralType, history]);
 
-  const runDiagnosis = () => { setDiagnosis(getDiagnosis(params, tankGallons, coralType)); setExpandedIssue(null); };
-
-  const saveTest = () => {
+  const runDiagnosis = () => {
+    setDiagnosis(getDiagnosis(params, tankGallons, coralType)); setExpandedIssue(null);
     const dateToUse = testDate ? new Date(testDate).toISOString() : new Date().toISOString();
     const entry = { id: Date.now(), date: dateToUse, params: { ...params }, tankGallons, coralType };
     const nh = [entry, ...history].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 100);
     setHistory(nh); saveData(nh);
-    setParams({ calcium: "", alkalinity: "", magnesium: "", salinity: "", ph: "", temperature: "", nitrate: "", phosphate: "", ammonia: "", nitrite: "" });
+  };
+
+  const saveTest = () => {
+    setParams({ nitrate: "", ph: "", alkalinity: "", calcium: "", phosphate: "", salinity: "", temperature: "", magnesium: "", ammonia: "", nitrite: "" });
     setTestDate("");
     setDiagnosis(null); setView("dashboard");
   };
@@ -618,7 +620,7 @@ export default function ReefApp() {
             );
           })}
           <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-            <button style={{ ...btn(true), flex: 2 }} onClick={saveTest}>Save Test & Return</button>
+            <button style={{ ...btn(true), flex: 2 }} onClick={saveTest}>Done & Return</button>
             <button style={{ ...base.secBtn, flex: 1 }} onClick={() => { setDiagnosis(null); setExpandedIssue(null); }}>Re-enter</button>
           </div>
         </div>
